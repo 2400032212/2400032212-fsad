@@ -1,0 +1,81 @@
+package com.klef.fsad.exam;
+
+import javax.persistence.*;
+
+@Entity
+@Table(name="ticket")
+public class Ticket {
+
+    @Id
+    private int id;
+    private String name;
+    private String date;
+    private String status;
+
+    public Ticket() {}
+
+    public Ticket(int id, String name, String date, String status) {
+        this.id = id;
+        this.name = name;
+        this.date = date;
+        this.status = status;
+    }
+
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public String getDate() { return date; }
+    public void setDate(String date) { this.date = date; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+}
+package com.klef.fsad.exam;
+
+import org.hibernate.*;
+import org.hibernate.cfg.Configuration;
+import org.hibernate.query.Query;
+
+public class ClientDemo {
+    public static void main(String[] args) {
+
+        SessionFactory factory = new Configuration()
+                .configure()
+                .addAnnotatedClass(Ticket.class)
+                .buildSessionFactory();
+
+        Session session = factory.openSession();
+
+        try {
+            session.beginTransaction();
+
+            // Insert record
+            Ticket t1 = new Ticket(1,"Support Issue","2026-03-11","Open");
+            session.save(t1);
+
+            session.getTransaction().commit();
+
+            session.beginTransaction();
+
+            // HQL Update using positional parameters
+            String hql = "update Ticket set name=?1, status=?2 where id=?3";
+            Query query = session.createQuery(hql);
+            query.setParameter(1,"Network Issue");
+            query.setParameter(2,"Resolved");
+            query.setParameter(3,1);
+
+            int result = query.executeUpdate();
+
+            session.getTransaction().commit();
+
+            System.out.println("Records Updated: " + result);
+
+        } finally {
+            session.close();
+            factory.close();
+        }
+    }
+}
